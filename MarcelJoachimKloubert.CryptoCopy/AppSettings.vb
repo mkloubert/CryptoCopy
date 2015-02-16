@@ -26,7 +26,7 @@ Public NotInheritable Class AppSettings
 
 #End Region
 
-#Region "Properties (7)"
+#Region "Properties (8)"
 
     ''' <summary>
     ''' Gets or sets the destionation directory.
@@ -36,6 +36,11 @@ Public NotInheritable Class AppSettings
             Return Me._DESTIONATION_DIRS
         End Get
     End Property
+
+    ''' <summary>
+    ''' Gets or sets the iterations.
+    ''' </summary>
+    Public Property Iterations As Integer?
 
     ''' <summary>
     ''' Gets or sets the password.
@@ -66,6 +71,25 @@ Public NotInheritable Class AppSettings
     ''' Gets or sets the operation type.
     ''' </summary>
     Public Property Type As CryptoOperationType = CryptoOperationType.Encrypt
+
+#End Region
+
+#Region "Methods (1)"
+
+    ''' <summary>
+    ''' Creates a new crypter instance based on the current settings.
+    ''' </summary>
+    ''' <returns>The new crypter instance.</returns>
+    Public Function CreateCrypter() As ICrypter
+        Dim iterations As Integer? = Me.Iterations
+        If Not iterations.HasValue Then
+            iterations = 1000
+        End If
+
+        Return New RijndaelCrypter(Me.Password, _
+                                   Me.Salt, _
+                                   iterations.Value)
+    End Function
 
 #End Region
 

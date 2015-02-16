@@ -66,8 +66,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.vb" />
+    <Compile Include="CryptedDirectory.vb" />
+    <Compile Include="Cryptography\CrypterBase.vb" />
+    <Compile Include="Cryptography\ICrypter.vb" />
+    <Compile Include="Cryptography\RijndaelCrypter.vb" />
     <Compile Include="CryptoOperation.vb" />
     <Compile Include="CryptoOperationType.vb" />
+    <Compile Include="MetaFile.vb" />
     <Compile Include="ProgramModule.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
