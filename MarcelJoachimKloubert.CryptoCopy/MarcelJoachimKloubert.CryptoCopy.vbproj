@@ -72,7 +72,9 @@
     <Compile Include="Cryptography\RijndaelCrypter.vb" />
     <Compile Include="CryptoOperation.vb" />
     <Compile Include="CryptoOperationType.vb" />
-    <Compile Include="MetaFile.vb" />
+    <Compile Include="Meta\MetaFile.vb" />
+    <Compile Include="Meta\MetaFileDirectoryEntry.vb" />
+    <Compile Include="Meta\MetaFileFileEntry.vb" />
     <Compile Include="ProgramModule.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">

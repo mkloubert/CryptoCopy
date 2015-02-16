@@ -39,14 +39,36 @@ Public NotInheritable Class CryptoOperation
 
 #End Region
 
-#Region "Methods (5)"
+#Region "Methods (6)"
 
-    Private Sub DecryptDirectory(src As DirectoryInfo, dest As DirectoryInfo)
+    Private Sub DecryptDirectory(src As DirectoryInfo, dest As DirectoryInfo, isFirst As Boolean)
         '' TODO
     End Sub
 
-    Private Sub EncryptDirectory(src As DirectoryInfo, dest As DirectoryInfo)
-        '' TODO
+    Private Function FindNextDir(baseDir As DirectoryInfo)
+
+    End Function
+
+    Private Sub EncryptDirectory(src As DirectoryInfo, dest As DirectoryInfo, isFirst As Boolean)
+        Dim crypter As ICrypter = Me.Settings.CreateCrypter()
+
+        Dim mf As MetaFile = New MetaFile(dest.FullName, crypter)
+
+        If isFirst Then
+            For Each file As FileInfo In src.GetFiles()
+                mf.EncryptFile(file.FullName)
+            Next
+        End If
+
+        For Each subDir As DirectoryInfo In src.GetDirectories()
+            Dim newDirEntry As MetaFileDirectoryEntry = mf.EncryptDirectory(subDir.FullName)
+
+            Me.EncryptDirectory(subDir, _
+                                newDirEntry.File.File.Directory, _
+                                False)
+        Next
+
+        mf.UpdateAndSave()
     End Sub
     ''' <summary>
     ''' Starts the operation.
@@ -70,19 +92,23 @@ Public NotInheritable Class CryptoOperation
     End Sub
 
     Private Sub Start_Decrypt()
-        Try
-            Me.DecryptDirectory(Me.Settings.SourceDirectory, _
-                                Me.Settings.DestionationDirectories(0))
-        Catch ex As Exception
-            '' TODO
-        End Try
+        For Each dest As DirectoryInfo In Me.Settings.DestionationDirectories.ToArray()
+            Try
+                Me.DecryptDirectory(Me.Settings.SourceDirectory, _
+                                    dest, _
+                                    True)
+            Catch ex As Exception
+                '' TODO
+            End Try
+        Next
     End Sub
 
     Private Sub Start_Encrypt()
         For Each dest As DirectoryInfo In Me.Settings.DestionationDirectories.ToArray()
             Try
-                Me.DecryptDirectory(Me.Settings.SourceDirectory, _
-                                    dest)
+                Me.EncryptDirectory(Me.Settings.SourceDirectory, _
+                                    dest, _
+                                    True)
             Catch ex As Exception
                 '' TODO
             End Try

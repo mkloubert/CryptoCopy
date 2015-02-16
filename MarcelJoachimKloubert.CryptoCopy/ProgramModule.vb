@@ -22,20 +22,20 @@ Module ProgramModule
         Try
             Dim actionToInvoke As Action = Nothing
 
-            Dim normaliedArgs As String() = args.Select(Function(x)
-                                                            Return x.Trim()
+            Dim normalizedArgs As String() = args.Select(Function(x)
+                                                             Return x.Trim()
+                                                         End Function) _
+                                                 .Where(Function(x)
+                                                            Return x <> String.Empty
                                                         End Function) _
-                                                .Where(Function(x)
-                                                           Return x <> String.Empty
-                                                       End Function) _
                                                 .ToArray()
 
-            If normaliedArgs.Length > 0 Then
+            If normalizedArgs.Length > 0 Then
                 '' extract data
                 Dim dirs As List(Of String) = New List(Of String)
                 Dim opts As List(Of String) = New List(Of String)
-                For Each a As String In normaliedArgs
-                    If a.StartsWith("/") And a.Contains(":") Then
+                For Each a As String In normalizedArgs
+                    If a.StartsWith("/") Then
                         opts.Add(a)
                     Else
                         dirs.Add(a)
