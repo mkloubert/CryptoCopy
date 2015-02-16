@@ -26,7 +26,7 @@ Public NotInheritable Class AppSettings
 
 #End Region
 
-#Region "Properties (5)"
+#Region "Properties (7)"
 
     ''' <summary>
     ''' Gets or sets the destionation directory.
@@ -46,6 +46,16 @@ Public NotInheritable Class AppSettings
     ''' Gets or sets the salt.
     ''' </summary>
     Public Property Salt As Byte()
+
+    ''' <summary>
+    ''' Gets or sets if password should be shown or not.
+    ''' </summary>
+    Public Property ShowPassword As Boolean
+
+    ''' <summary>
+    ''' Gets or sets if salt should be shown or not.
+    ''' </summary>
+    Public Property ShowSalt As Boolean
 
     ''' <summary>
     ''' Gets or sets the source directory.
