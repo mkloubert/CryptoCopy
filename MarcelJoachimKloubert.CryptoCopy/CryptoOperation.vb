@@ -125,11 +125,6 @@ Public NotInheritable Class CryptoOperation
                               Convert.ToBase64String(Me.Settings.Password))
         End If
 
-        If Me.Settings.ShowSalt Then
-            Console.WriteLine("Salt (Base64)    : {0}", _
-                              Convert.ToBase64String(Me.Settings.Salt))
-        End If
-
         If Not actionToInvoke Is Nothing Then
             actionToInvoke()
         End If

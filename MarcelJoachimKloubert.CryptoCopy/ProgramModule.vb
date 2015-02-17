@@ -186,7 +186,6 @@ Module ProgramModule
                                 rng.GetBytes(settings.Password)
 
                                 settings.ShowPassword = True
-                                settings.ShowSalt = True
                             End If
                             Exit Select
                     End Select
@@ -200,7 +199,6 @@ Module ProgramModule
                                      If settings.Salt Is Nothing Then
                                          '' default salt
 
-                                         settings.ShowSalt = False
                                          Using md5 As New MD5CryptoServiceProvider()
                                              settings.Salt = md5.ComputeHash(Encoding.UTF8.GetBytes("gwsTMV4lY+4an8XMK4aSk"))
                                          End Using
