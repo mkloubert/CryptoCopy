@@ -71,7 +71,6 @@ Public NotInheritable Class CryptoOperation
 
     Private Sub EncryptDirectory(src As DirectoryInfo, dest As DirectoryInfo, isFirst As Boolean)
         Dim crypter As ICrypter = Me.Settings.CreateCrypter()
-        Dim rand As Random = New Random()
 
         Dim mf As MetaFile = New MetaFile(dest.FullName, crypter)
         If mf.File.Exists Then
@@ -82,7 +81,7 @@ Public NotInheritable Class CryptoOperation
         If isFirst Then
             '' make random ordered list of files to encrypt
             Dim filesToEncrypt As List(Of FileInfo) = New List(Of FileInfo)(src.EnumerateFiles())
-            filesToEncrypt.Shuffle(rand)
+            filesToEncrypt.Shuffle()
 
             For Each file As FileInfo In filesToEncrypt
                 mf.EncryptFile(file.FullName)
@@ -91,7 +90,7 @@ Public NotInheritable Class CryptoOperation
 
         '' make random ordered list of directories to encrypt
         Dim dirsToEncrypt As List(Of DirectoryInfo) = New List(Of DirectoryInfo)(src.EnumerateDirectories())
-        dirsToEncrypt.Shuffle(rand)
+        dirsToEncrypt.Shuffle()
 
         For Each subDir As DirectoryInfo In dirsToEncrypt
             Dim newDirEntry As MetaFileDirectoryEntry = mf.EncryptDirectory(subDir.FullName)
@@ -120,6 +119,16 @@ Public NotInheritable Class CryptoOperation
                 actionToInvoke = New Action(AddressOf Me.Start_Encrypt)
                 Exit Select
         End Select
+
+        If Me.Settings.ShowPassword Then
+            Console.WriteLine("Password (Base64): {0}", _
+                              Convert.ToBase64String(Me.Settings.Password))
+        End If
+
+        If Me.Settings.ShowSalt Then
+            Console.WriteLine("Salt (Base64)    : {0}", _
+                              Convert.ToBase64String(Me.Settings.Salt))
+        End If
 
         If Not actionToInvoke Is Nothing Then
             actionToInvoke()

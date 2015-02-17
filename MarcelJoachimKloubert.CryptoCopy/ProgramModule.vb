@@ -68,8 +68,8 @@ Module ProgramModule
                 '' extract directories and options
                 Dim dirs As List(Of String) = New List(Of String)
                 Dim opts As List(Of String) = New List(Of String)
-                For i As Integer = 1 To normalizedArgs.Length
-                    Dim a As String = normalizedArgs(i).TrimStart()
+                For i As Integer = 2 To normalizedArgs.Length
+                    Dim a As String = normalizedArgs(i - 1).TrimStart()
 
                     If a.StartsWith("/") And a.Contains(":") Then
                         opts.Add(a)
