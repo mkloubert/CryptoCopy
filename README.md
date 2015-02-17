@@ -6,7 +6,7 @@ Enter `CryptopCopy /?` to display detail help screen.
 
 ## Requirements
 
-* [Microsoft .NET](https://en.wikipedia.org/wiki/.NET_Framework) 4+ for [Windows] systems **-OR-**
+* [Microsoft .NET](https://en.wikipedia.org/wiki/.NET_Framework) 4+ for [Windows](https://en.wikipedia.org/wiki/Microsoft_Windows) systems **-OR-**
 * [Mono framework](https://en.wikipedia.org/wiki/Mono_%28software%29) for [Linux](https://en.wikipedia.org/wiki/Linux) or [MacOS](https://en.wikipedia.org/wiki/Mac_OS)
 
 ## How to use
