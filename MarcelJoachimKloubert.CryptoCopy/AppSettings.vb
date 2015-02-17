@@ -3,6 +3,8 @@
 '' s. https://github.com/mkloubert/CryptoCopy
 
 Imports System.IO
+Imports System.Security.Cryptography
+Imports System.Text
 
 ''' <summary>
 ''' Stores application settings.
@@ -76,13 +78,22 @@ Public NotInheritable Class AppSettings
     ''' </summary>
     ''' <returns>The new crypter instance.</returns>
     Public Function CreateCrypter() As ICrypter
+        Dim salt As Byte() = Me.Salt
+        If salt IsNot Nothing Then
+            '' default salt
+
+            Using md5 As New MD5CryptoServiceProvider()
+                salt = md5.ComputeHash(Encoding.UTF8.GetBytes("gwsTMV4lY+4an8XMK4aSk"))
+            End Using
+        End If
+
         Dim iterations As Integer? = Me.Iterations
         If Not iterations.HasValue Then
             iterations = 1000
         End If
 
         Return New RijndaelCrypter(Me.Password, _
-                                   Me.Salt, _
+                                   salt, _
                                    iterations.Value)
     End Function
 

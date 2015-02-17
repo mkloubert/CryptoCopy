@@ -196,14 +196,6 @@ Module ProgramModule
                 '' define action for starting operation
 
                 actionToInvoke = Sub()
-                                     If settings.Salt Is Nothing Then
-                                         '' default salt
-
-                                         Using md5 As New MD5CryptoServiceProvider()
-                                             settings.Salt = md5.ComputeHash(Encoding.UTF8.GetBytes("gwsTMV4lY+4an8XMK4aSk"))
-                                         End Using
-                                     End If
-
                                      Dim operation As CryptoOperation = New CryptoOperation(settings)
                                      operation.Start()
                                  End Sub
@@ -273,8 +265,6 @@ Module ProgramModule
         Console.WriteLine("Decrypt a directory:")
         Console.WriteLine("    CryptoCopy /d SourceDirectory DestinationDirectory /p:myPassword")
         Console.WriteLine()
-
-
     End Sub
 
 #End Region
