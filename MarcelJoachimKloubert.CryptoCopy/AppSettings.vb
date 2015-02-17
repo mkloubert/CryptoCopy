@@ -79,7 +79,7 @@ Public NotInheritable Class AppSettings
     ''' <returns>The new crypter instance.</returns>
     Public Function CreateCrypter() As ICrypter
         Dim salt As Byte() = Me.Salt
-        If salt IsNot Nothing Then
+        If salt Is Nothing Then
             '' default salt
 
             Using md5 As New MD5CryptoServiceProvider()
