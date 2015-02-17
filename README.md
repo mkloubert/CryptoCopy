@@ -2,7 +2,7 @@
 
 Console application that encrypts / decrypts files.
 
-Enter `CryptopCopy /?` to display detail help screen.
+Enter `CryptoCopy /?` to display detail help screen.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ Enter `CryptopCopy /?` to display detail help screen.
 The following example shows how to encrypt a directory and its sub-directories:
 
 ```dos
-CryptopCopy /e C:\My_Uncrypted_Files C:\Store_The_Crypted_Files_Here /p:mySecretPassword
+CryptoCopy /e C:\My_Uncrypted_Files C:\Store_The_Crypted_Files_Here /p:mySecretPassword
 ```
 
 HINT: If you do not set a password, the application will generate a random one for you!
@@ -26,6 +26,6 @@ HINT: If you do not set a password, the application will generate a random one f
 Use the `/d` option to decrypt a crypted directory.
 
 ```dos
-CryptopCopy /d C:\Files_That_Are_Crypted C:\My_Uncrypted_Files /p:mySecretPassword
+CryptoCopy /d C:\Files_That_Are_Crypted C:\My_Uncrypted_Files /p:mySecretPassword
 ```
 
