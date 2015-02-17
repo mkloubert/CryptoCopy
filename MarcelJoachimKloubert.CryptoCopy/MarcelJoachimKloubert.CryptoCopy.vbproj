@@ -62,16 +62,17 @@
     <Import Include="System.Data" />
     <Import Include="System.Diagnostics" />
     <Import Include="System.Linq" />
+    <Import Include="System.Runtime.CompilerServices" />
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.vb" />
-    <Compile Include="CryptedDirectory.vb" />
     <Compile Include="Cryptography\CrypterBase.vb" />
     <Compile Include="Cryptography\ICrypter.vb" />
     <Compile Include="Cryptography\RijndaelCrypter.vb" />
     <Compile Include="CryptoOperation.vb" />
     <Compile Include="CryptoOperationType.vb" />
+    <Compile Include="Extensions\CryptoCopyExtensionMethods.vb" />
     <Compile Include="Meta\MetaFile.vb" />
     <Compile Include="Meta\MetaFileDirectoryEntry.vb" />
     <Compile Include="Meta\MetaFileFileEntry.vb" />

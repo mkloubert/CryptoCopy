@@ -3,6 +3,7 @@
 '' s. https://github.com/mkloubert/CryptoCopy
 
 Imports System.IO
+Imports MarcelJoachimKloubert.CryptoCopy.Extensions
 
 ''' <summary>
 ''' Handles a crypto operation.
@@ -42,34 +43,68 @@ Public NotInheritable Class CryptoOperation
 #Region "Methods (6)"
 
     Private Sub DecryptDirectory(src As DirectoryInfo, dest As DirectoryInfo, isFirst As Boolean)
-        '' TODO
+        Dim crypter As ICrypter = Me.Settings.CreateCrypter()
+
+        Dim mf As MetaFile = Nothing
+        Try
+            mf = New MetaFile(src.FullName, crypter)
+
+            If Not mf.File.Exists Then
+                Return
+            End If
+        Catch ex As Exception
+            Return
+        End Try
+
+        For Each file As MetaFileFileEntry In mf.Files
+            file.DecryptTo(dest.FullName)
+        Next
+
+        For Each dir As MetaFileDirectoryEntry In mf.Directories
+            Dim decryptedDir = dir.DecryptTo(dest.FullName)
+
+            Me.DecryptDirectory(New DirectoryInfo(dir.RealDirectory.FullName), _
+                                decryptedDir, _
+                                False)
+        Next
     End Sub
-
-    Private Function FindNextDir(baseDir As DirectoryInfo)
-
-    End Function
 
     Private Sub EncryptDirectory(src As DirectoryInfo, dest As DirectoryInfo, isFirst As Boolean)
         Dim crypter As ICrypter = Me.Settings.CreateCrypter()
+        Dim rand As Random = New Random()
 
         Dim mf As MetaFile = New MetaFile(dest.FullName, crypter)
+        If mf.File.Exists Then
+            mf.File.Delete()
+            mf.File.Refresh()
+        End If
 
         If isFirst Then
-            For Each file As FileInfo In src.GetFiles()
+            '' make random ordered list of files to encrypt
+            Dim filesToEncrypt As List(Of FileInfo) = New List(Of FileInfo)(src.EnumerateFiles())
+            filesToEncrypt.Shuffle(rand)
+
+            For Each file As FileInfo In filesToEncrypt
                 mf.EncryptFile(file.FullName)
             Next
         End If
 
-        For Each subDir As DirectoryInfo In src.GetDirectories()
+        '' make random ordered list of directories to encrypt
+        Dim dirsToEncrypt As List(Of DirectoryInfo) = New List(Of DirectoryInfo)(src.EnumerateDirectories())
+        dirsToEncrypt.Shuffle(rand)
+
+        For Each subDir As DirectoryInfo In dirsToEncrypt
             Dim newDirEntry As MetaFileDirectoryEntry = mf.EncryptDirectory(subDir.FullName)
+            newDirEntry.File.UpdateAndSave()
 
             Me.EncryptDirectory(subDir, _
-                                newDirEntry.File.File.Directory, _
+                                New DirectoryInfo(newDirEntry.File.File.Directory.FullName), _
                                 False)
         Next
 
         mf.UpdateAndSave()
     End Sub
+
     ''' <summary>
     ''' Starts the operation.
     ''' </summary>

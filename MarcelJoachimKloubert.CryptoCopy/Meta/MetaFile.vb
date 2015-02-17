@@ -3,8 +3,10 @@
 '' s. https://github.com/mkloubert/CryptoCopy
 
 Imports System.IO
+Imports System.IO.Compression
 Imports System.Xml.XPath
 Imports System.Security.Cryptography
+Imports MarcelJoachimKloubert.CryptoCopy.Extensions
 
 ''' <summary>
 ''' Handles a meta file.
@@ -29,11 +31,11 @@ Public NotInheritable Class MetaFile
     ''' <summary>
     ''' The name of the element for file entries.
     ''' </summary>
-    Public Const FILE_CONTAINER_ELEMENT_NAME = "files"
+    Public Const FILE_CONTAINER_ELEMENT_NAME As String = "files"
     ''' <summary>
     ''' The name of the element for a file entry.
     ''' </summary>
-    Public Const FILE_ELEMENT_NAME = "file"
+    Public Const FILE_ELEMENT_NAME As String = "file"
     ''' <summary>
     ''' The default name of a meta file.
     ''' </summary>
@@ -41,7 +43,7 @@ Public NotInheritable Class MetaFile
     ''' <summary>
     ''' The name of the root element of the meta file.
     ''' </summary>
-    Public Const ROOT_ELEMENT_NAME = "dir"
+    Public Const ROOT_ELEMENT_NAME As String = "dir"
 
 #End Region
 
@@ -119,6 +121,7 @@ Public NotInheritable Class MetaFile
     ''' <returns>The new entry.</returns>
     Public Function EncryptDirectory(dirPath As String) As MetaFileDirectoryEntry
         Dim dir As DirectoryInfo = New DirectoryInfo(dirPath)
+        Dim rand As Random = New Random()
 
         Dim destDir = New DirectoryInfo(Me.FindNextDir())
         destDir.Create()
@@ -129,7 +132,11 @@ Public NotInheritable Class MetaFile
         Try
             metaFile = New MetaFile(destDir.FullName, Me.Crypter)
 
-            For Each file As FileInfo In dir.GetFiles()
+            '' make random ordered list of files to encrypt
+            Dim filesToEncrypt As List(Of FileInfo) = New List(Of FileInfo)(dir.EnumerateFiles())
+            filesToEncrypt.Shuffle(rand)
+
+            For Each file As FileInfo In filesToEncrypt
                 Dim newFileEntry As MetaFileFileEntry = metaFile.EncryptFile(file.FullName)
 
                 fileEntriesToDelete.Add(newFileEntry)
@@ -147,7 +154,10 @@ Public NotInheritable Class MetaFile
             dirsElement.Add(xml)
 
             '' set data
+            xml.SetAttributeValue(MetaFileDirectoryEntry.CREATION_TIME_ATTRIB_NAME, dir.CreationTimeUtc.Ticks)
             xml.SetAttributeValue(MetaFileDirectoryEntry.DIR_ATTRIB_NAME, destDir.Name)
+            xml.SetAttributeValue(MetaFileDirectoryEntry.LAST_ACCESS_TIME_ATTRIB_NAME, dir.LastAccessTimeUtc.Ticks)
+            xml.SetAttributeValue(MetaFileDirectoryEntry.LAST_WRITE_TIME_ATTRIB_NAME, dir.LastWriteTimeUtc.Ticks)
             xml.Value = dir.Name
 
             Dim newEntry As MetaFileDirectoryEntry = New MetaFileDirectoryEntry(metaFile, xml)
@@ -212,8 +222,20 @@ Public NotInheritable Class MetaFile
 
             Dim xml As XElement = Nothing
             Try
+                '' password
+                Dim pwd As Byte() = New Byte(rand.Next(48, 64)) {}
+                rng.GetBytes(pwd)
+
+                '' salt
+                Dim salt As Byte() = New Byte(15) {}
+                rng.GetBytes(salt)
+
+                '' iterations
+                Dim iterations As Integer = rand.Next(1000, 2001)
+
+                Dim crypter As ICrypter = New RijndaelCrypter(pwd, salt, iterations)
                 Using destStream As FileStream = New FileStream(destFile.FullName, FileMode.CreateNew, FileAccess.ReadWrite)
-                    Me.Crypter.Encrypt(srcStream, destStream)
+                    crypter.Encrypt(srcStream, destStream)
                 End Using
 
                 '' //dir/files
@@ -224,23 +246,15 @@ Public NotInheritable Class MetaFile
                     Me.Xml.Add(filesElement)
                 End If
 
-                '' password
-                Dim pwd As Byte() = New Byte(63) {}
-                rng.GetBytes(pwd)
-
-                '' salt
-                Dim salt As Byte() = New Byte(15) {}
-                rng.GetBytes(salt)
-
-                '' iterations
-                Dim iterations As Integer = rand.Next(1000, 2001)
-
                 xml = New XElement(FILE_ELEMENT_NAME)
                 filesElement.Add(xml)
 
                 '' set data
+                xml.SetAttributeValue(MetaFileFileEntry.CREATION_TIME_ATTRIB_NAME, file.CreationTimeUtc.Ticks)
                 xml.SetAttributeValue(MetaFileFileEntry.FILE_ATTRIB_NAME, destFile.Name)
                 xml.SetAttributeValue(MetaFileFileEntry.ITERATIONS_ATTRIB_NAME, iterations)
+                xml.SetAttributeValue(MetaFileFileEntry.LAST_ACCESS_TIME_ATTRIB_NAME, file.LastAccessTimeUtc.Ticks)
+                xml.SetAttributeValue(MetaFileFileEntry.LAST_WRITE_TIME_ATTRIB_NAME, file.LastWriteTimeUtc.Ticks)
                 xml.SetAttributeValue(MetaFileFileEntry.PASSWORD_ATTRIB_NAME, Convert.ToBase64String(pwd))
                 xml.SetAttributeValue(MetaFileFileEntry.SALT_ATTRIB_NAME, Convert.ToBase64String(salt))
                 xml.Value = file.Name
@@ -284,7 +298,7 @@ Public NotInheritable Class MetaFile
     Private Function FindNextFile() As String
         Dim result As String = Nothing
 
-        For i As ULong = ULong.MinValue To ULong.MaxValue
+        For i As ULong = 1 To ULong.MaxValue
             Dim fileName As String = String.Format("{0}.bin", i)
             Dim file As FileInfo = New FileInfo(Path.Combine(Me.File.Directory.FullName, _
                                                              fileName))
@@ -304,11 +318,21 @@ Public NotInheritable Class MetaFile
         If Me.File.Exists Then
             Try
                 Using cryptedStream As FileStream = Me.File.OpenRead()
-                    Using uncryptedStream As MemoryStream = New MemoryStream()
-                        Me.Crypter.Decrypt(cryptedStream, uncryptedStream)
+                    Using compressedStream As MemoryStream = New MemoryStream()
+                        Me.Crypter.Decrypt(cryptedStream, compressedStream)
 
-                        uncryptedStream.Position = 0
-                        xml = XDocument.Load(uncryptedStream).Root
+                        compressedStream.Position = 0
+                        Using gzip As GZipStream = New GZipStream(compressedStream, CompressionMode.Decompress, True)
+                            Using uncryptedStream As MemoryStream = New MemoryStream()
+                                gzip.CopyTo(uncryptedStream)
+
+                                gzip.Flush()
+                                gzip.Close()
+
+                                uncryptedStream.Position = 0
+                                xml = XDocument.Load(uncryptedStream).Root
+                            End Using
+                        End Using
                     End Using
                 End Using
             Catch ex As Exception
@@ -364,14 +388,25 @@ Public NotInheritable Class MetaFile
         Me.File.Refresh()
         If Me.File.Exists Then
             Me.File.Delete()
+            Me.File.Refresh()
         End If
 
         Using uncryptedStream As MemoryStream = New MemoryStream()
             Me.Xml.Save(uncryptedStream)
 
             uncryptedStream.Position = 0
-            Using cryptedStream As FileStream = New FileStream(Me.File.FullName, FileMode.CreateNew, FileAccess.ReadWrite)
-                Me.Crypter.Encrypt(uncryptedStream, cryptedStream)
+            Using compressedStream As MemoryStream = New MemoryStream()
+                Using gzip As GZipStream = New GZipStream(compressedStream, CompressionMode.Compress, True)
+                    uncryptedStream.CopyTo(gzip)
+
+                    gzip.Flush()
+                    gzip.Close()
+                End Using
+
+                compressedStream.Position = 0
+                Using cryptedStream As FileStream = New FileStream(Me.File.FullName, FileMode.CreateNew, FileAccess.ReadWrite)
+                    Me.Crypter.Encrypt(compressedStream, cryptedStream)
+                End Using
             End Using
         End Using
     End Sub
