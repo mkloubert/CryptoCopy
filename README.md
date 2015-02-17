@@ -13,7 +13,7 @@ Enter `CryptopCopy /?` to display detail help screen.
 
 ### Encrypt
 
-The following examples shows how to encrypt a directory and its sub-directories:
+The following example shows how to encrypt a directory and its sub-directories:
 
 ```dos
 CryptopCopy /e C:\My_Uncrypted_Files C:\Store_The_Crypted_Files_Here /p:mySecretPassword
